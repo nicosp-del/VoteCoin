@@ -1,0 +1,110 @@
+//  Important security information
+
+//  Some functions need to be restricted, then only ceratin members (in our case the shareholder(s)) can access them
+//  This is called "access control"
+//  The people who are granted access will be put on a list, and a certain function will check if the shareholder is on the list
+//  Only if shareholder is on list, his vote will be granted and accepted    
+
+//smart contract runs on solidity 0.5.0 or higher
+pragma solidity  >=0.5.0;
+
+
+
+// Now the shareholder who gives a vote is defined, by allocating certain information to the shareholder (ID and Name)
+
+    struct shareholder {
+        uint id;
+        string name;
+// The voteCount is definded by the number of shares the shareholder owns
+// If the shareholder holds multiple shares he gets relatively more coins to spend on his decision
+// This increases the effect on the vote relatively to the number of owned shares
+        uint voteCount;
+        
+    }
+    
+// The add shareholder function creates a shareholder listing on the blockchain
+// Initial vote count for each shareholder is 0
+      
+
+// Each candidate will be identified with a unique ID
+mapping(uint => shareholder) public shareholderLookup; 
+
+
+// Keeps a track of the number of candidates and also fulfills the function to generate a unique ID
+// Unique ID is important for the verification process
+
+uint public shareholderCount; 
+
+function addShareholder(string memory name) public {
+  shareholderLookup[shareholderCount] = shareholder(shareholderCount, name, 0);
+  shareholderCount++; 
+}
+  
+  //addShareholder should run as soon as smart contract runs on blockchain, we call from constructor function
+  constructor() public {
+  addShareholder("VoteDanielHellwig");                  // First shareholder ID: 0
+  addShareholder("VoteGoranKarlic");                    // Second shareholder ID: 1
+  addShareholder("AbstentionOfVote");                   // Third shareholder ID: 3
+}
+
+// Note 1: We need to fetch the candidates: we do this at once: the smart contract will run for every shareholder who votes once
+// Note 2: Since getCandidates() is NOT called from within the smart contract but is called from outside, we use external keyword 
+// Note 3: getCandidates() is a read only function
+// Reading from the blockchain is free, we use keywork view
+
+function getShareholder() external view returns (string[] memory, uint[] memory) {
+    string[] memory names = new string[](shareholderCount);
+    uint[] memory voteCounts = new uint[](shareholderCount);
+    for (uint i = 0; i < shareholderCount; i++) {
+        names[i] = shareholderLookup[i].name;
+        voteCounts[i] = shareholderLookup[i].voteCount;
+    }
+    return (names, voteCounts);}
+    
+// Now add voting logic to smart contract 
+// Name of the function = vote
+// Function is called from outside, so external used
+// Don't use view keyword, cause function writes the shareholder vote onto blockchain 
+// Writing on blockchain not free, costs gas
+
+mapping(address => bool) public voterLookup;
+
+function vote(uint id) external {
+    require (!voterLookup[msg.sender]);
+    require (id >= 0 && id <= shareholderCount-1);
+    shareholderLookup[id].voteCount++;
+    emit votedEvent(id);
+}
+
+event votedEvent(uint indexed id);
+    
+// If we want to see the number votes the shareholders gave to one voting option : test getShareholder() function  
+// Testing: call getShareholder() function from constructor() function
+// If 9 shareholder would have voted: 
+
+// "VoteDanielHellwig" (3)              
+// "VoteGoranKarlic" (4)    
+// "AbstentionOfVote" (2)          
+
+// The wallet with the most votes should be marked as the winning one
+// Using if, else Statement
+    
+   function getResult() public view returns(string memory) {
+      uint "VoteDanielHellwig" = 3; 
+      uint "VoteGoranKarlic" = 4;
+      uint "AbstentionOfVote" = 2;
+      uint result
+      
+      if( "VoteDanielHellwig" > "VoteGoranKarlic" &&  "AbstentionOfVote") {   
+         result = "VoteDanielHellwig";
+      } else if( "VoteGoranKarlic" > "VoteDanielHellwig" &&  "AbstentionOfVote" ){
+         result = "VoteGoranKarlic";
+      } else {
+         result = "AbstentionOfVote";
+      }       
+      return integerToString(result); 
+    
+// The result is then shown in form of a table, and the winner is marked
+  function printresult = table
+// In this case VoteGoranKarlic is the winner with the most votes, so "Goran Karlic" would have won the vote
+}
